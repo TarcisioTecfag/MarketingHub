@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "npx prisma generate && npx prisma db push --accept-data-loss",
-    "start": "tsx src/index.ts",
+    "build": "npx prisma generate",
+    "start": "npx prisma db push --accept-data-loss && tsx src/index.ts",
     "dev": "nodemon --watch src --ext ts --exec tsx src/index.ts"
   },
   "keywords": [],
