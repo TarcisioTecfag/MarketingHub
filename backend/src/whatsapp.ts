@@ -30,7 +30,7 @@ export const startWhatsApp = async () => {
     auth: state,
     printQRInTerminal: true,
     logger,
-    browser: Browsers.macOS("Desktop"),
+    browser: ["MarketingHub", "Chrome", "10.0"],
   });
 
   waSocket.ev.on("creds.update", saveCreds);
@@ -57,9 +57,11 @@ export const startWhatsApp = async () => {
         addLog(`Conexão fechada (Status: ${error}). Tentando reconectar...`, "error");
         setTimeout(startWhatsApp, 3000);
       } else {
-        addLog(`Sessão inválida ou desconectada (Status: ${error}). Solicitando novo QR Code...`, "error");
-        await prisma.authState.deleteMany();
-        startWhatsApp();
+        addLog(`Sessão inválida ou desconectada (Status: ${error}). Limpando e solicitando novo QR...`, "error");
+        setTimeout(async () => {
+          await prisma.authState.deleteMany();
+          startWhatsApp();
+        }, 2000);
       }
     } else if (connection === "open") {
       connectionStatus = "connected";
