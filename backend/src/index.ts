@@ -1,9 +1,15 @@
 import express from "express";
 import cors from "cors";
-import { startWhatsApp, connectionStatus, qrCodeBase64, getGroups, disconnectWhatsApp, connectionLogs, sendTestMessage } from "./whatsapp";
 import { prisma } from "./db";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+
+// WhatsApp module — loaded lazily so server starts even if Baileys has issues
+let waModule: typeof import("./whatsapp") | null = null;
+const getWA = async () => {
+  if (!waModule) waModule = await import("./whatsapp");
+  return waModule;
+};
 
 const JWT_SECRET = process.env.JWT_SECRET || "tecfag_marketing_hub_super_secret";
 
@@ -29,17 +35,20 @@ app.get("/health", (req, res) => {
 });
 
 // ---- WhatsApp Core Routes ----
-app.get("/api/whatsapp/status", (req, res) => {
-  res.json({ status: connectionStatus });
+app.get("/api/whatsapp/status", async (req, res) => {
+  const wa = await getWA();
+  res.json({ status: wa.connectionStatus });
 });
 
-app.get("/api/whatsapp/qr", (req, res) => {
-  res.json({ qr: qrCodeBase64 });
+app.get("/api/whatsapp/qr", async (req, res) => {
+  const wa = await getWA();
+  res.json({ qr: wa.qrCodeBase64 });
 });
 
 app.post("/api/whatsapp/connect", async (req, res) => {
   try {
-    await startWhatsApp();
+    const wa = await getWA();
+    await wa.startWhatsApp();
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: "Falha ao iniciar WhatsApp" });
@@ -47,7 +56,8 @@ app.post("/api/whatsapp/connect", async (req, res) => {
 });
 
 app.post("/api/whatsapp/disconnect", async (req, res) => {
-  await disconnectWhatsApp();
+  const wa = await getWA();
+  await wa.disconnectWhatsApp();
   res.json({ success: true });
 });
 
@@ -57,20 +67,23 @@ app.post("/api/whatsapp/send-test", async (req, res) => {
     if (!number || !message) {
       return res.status(400).json({ error: "Número e mensagem são obrigatórios" });
     }
-    await sendTestMessage(number, message);
+    const wa = await getWA();
+    await wa.sendTestMessage(number, message);
     res.json({ success: true });
   } catch (err: any) {
     res.status(500).json({ error: err.message || "Falha ao enviar mensagem de teste" });
   }
 });
 
-app.get("/api/whatsapp/logs", (req, res) => {
-  res.json(connectionLogs);
+app.get("/api/whatsapp/logs", async (req, res) => {
+  const wa = await getWA();
+  res.json(wa.connectionLogs);
 });
 
 app.get("/api/groups", async (req, res) => {
   try {
-    const groups = await getGroups();
+    const wa = await getWA();
+    const groups = await wa.getGroups();
     res.json(groups);
   } catch (err) {
     res.status(500).json({ error: "Erro ao buscar grupos." });
@@ -226,6 +239,9 @@ app.listen(Number(PORT), "0.0.0.0", () => {
   console.log(`Servidor rodando na porta ${PORT}`);
   seedMasterUser();
   startCronJobs();
-  startWhatsApp().catch(console.error);
+  // Load WhatsApp lazily — don't crash server if Baileys fails on startup
+  getWA().then(wa => wa.startWhatsApp()).catch((err) => {
+    console.error("WhatsApp startup error (non-fatal):", err.message);
+  });
 });
 
