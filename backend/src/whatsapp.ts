@@ -1,4 +1,4 @@
-import makeWASocket, { DisconnectReason, Browsers } from "@whiskeysockets/baileys";
+import makeWASocket, { DisconnectReason, Browsers, fetchLatestBaileysVersion } from "@whiskeysockets/baileys";
 import { Boom } from "@hapi/boom";
 import pino from "pino";
 import { prisma } from "./db";
@@ -26,11 +26,15 @@ const logger = pino({ level: "silent" });
 export const startWhatsApp = async () => {
   const { state, saveCreds } = await usePrismaAuthState(prisma, "default");
 
+  const { version, isLatest } = await fetchLatestBaileysVersion();
+  console.log(`📡 Iniciando WhatsApp v${version.join(".")} (Latest: ${isLatest})`);
+
   waSocket = makeWASocket({
+    version,
     auth: state,
     printQRInTerminal: true,
     logger,
-    browser: ["MarketingHub", "Chrome", "10.0"],
+    browser: Browsers.ubuntu("Chrome"),
   });
 
   waSocket.ev.on("creds.update", saveCreds);
