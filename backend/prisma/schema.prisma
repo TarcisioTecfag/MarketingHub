@@ -16,6 +16,7 @@ model Birthday {
   id          String   @id @default(uuid())
   name        String
   birthDate   String   // Format: YYYY-MM-DD
+  sendTime    String   @default("08:00") // Format: HH:MM
   groupId     String
   message     String   @db.Text
   imageBase64 String?  @db.Text
@@ -29,6 +30,7 @@ model SeasonalCampaign {
   title       String
   type        String
   sendDate    String   // Format: YYYY-MM-DD
+  sendTime    String   @default("08:00") // Format: HH:MM
   groupId     String
   message     String   @db.Text
   imageBase64 String?  @db.Text

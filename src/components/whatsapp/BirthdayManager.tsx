@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Pencil, Trash2, Cake, Search, Users, ImageIcon, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Cake, Search, Users, ImageIcon, Loader2, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,7 @@ type Birthday = {
   id: string;
   name: string;
   birthDate: string;
+  sendTime: string;
   groupId: string;
   message: string;
   imageBase64: string | null;
@@ -93,6 +94,7 @@ function BirthdayForm({
 }) {
   const [name, setName] = useState(initial?.name ?? "");
   const [birthDate, setBirthDate] = useState(initial?.birthDate ?? "");
+  const [sendTime, setSendTime] = useState(initial?.sendTime ?? "08:00");
   const [message, setMessage] = useState(initial?.message ?? "");
   const [imageBase64, setImageBase64] = useState<string | null>(initial?.imageBase64 ?? null);
   const [groupId, setGroupId] = useState(initial?.groupId ?? "");
@@ -130,10 +132,21 @@ function BirthdayForm({
             </SelectContent>
           </Select>
         </div>
-        <div className="space-y-2">
-          <Label>Data de Nascimento</Label>
-          <Input type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} />
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>Data de Nascimento</Label>
+            <Input type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} />
+          </div>
+          <div className="space-y-2">
+            <Label className="flex items-center gap-1.5">
+              <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+              Horário do Disparo
+            </Label>
+            <Input type="time" value={sendTime} onChange={(e) => setSendTime(e.target.value)} />
+          </div>
         </div>
+
         <div className="space-y-2">
           <Label>Mensagem Personalizada (use {'{nome}'} para a variável)</Label>
           <Textarea rows={4} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Parabéns {nome}! Feliz aniversário..." />
@@ -145,7 +158,7 @@ function BirthdayForm({
         <div className="flex justify-end gap-3 pt-2">
           <Button variant="outline" onClick={onCancel} disabled={isPending}>Cancelar</Button>
           <Button
-            onClick={() => onSave({ name, birthDate, message, imageBase64, groupId })}
+            onClick={() => onSave({ name, birthDate, sendTime, message, imageBase64, groupId })}
             disabled={!name || !birthDate || !groupId || isPending}
           >
             {isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
@@ -255,6 +268,7 @@ export function BirthdayManager() {
               <TableRow>
                 <TableHead>Nome</TableHead>
                 <TableHead>Nascimento</TableHead>
+                <TableHead>Horário</TableHead>
                 <TableHead>Grupo</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
@@ -262,7 +276,7 @@ export function BirthdayManager() {
             </TableHeader>
             <TableBody>
               {isLoading && (
-                 <TableRow><TableCell colSpan={5} className="text-center py-8"><Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" /></TableCell></TableRow>
+                 <TableRow><TableCell colSpan={6} className="text-center py-8"><Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" /></TableCell></TableRow>
               )}
               {!isLoading && filtered.map((b) => {
                 const badge = statusBadge[b.status] || statusBadge.pendente;
@@ -270,6 +284,11 @@ export function BirthdayManager() {
                   <TableRow key={b.id}>
                     <TableCell className="font-medium">{b.name}</TableCell>
                     <TableCell>{formatDate(b.birthDate)}</TableCell>
+                    <TableCell>
+                      <span className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <Clock className="h-3.5 w-3.5" />{b.sendTime || "08:00"}
+                      </span>
+                    </TableCell>
                     <TableCell className="text-muted-foreground text-sm truncate max-w-[200px]">{getGroupName(b.groupId)}</TableCell>
                     <TableCell><Badge variant={badge.variant}>{badge.label}</Badge></TableCell>
                     <TableCell className="text-right">
@@ -284,7 +303,7 @@ export function BirthdayManager() {
                 );
               })}
               {!isLoading && filtered.length === 0 && (
-                <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">Nenhum aniversariante encontrado.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhum aniversariante encontrado.</TableCell></TableRow>
               )}
             </TableBody>
           </Table>

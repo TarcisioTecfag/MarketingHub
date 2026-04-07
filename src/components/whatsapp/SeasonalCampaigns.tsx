@@ -16,6 +16,7 @@ type SeasonalCampaign = {
   title: string;
   type: string;
   sendDate: string;
+  sendTime: string;
   groupId: string;
   message: string;
   imageBase64: string | null;
@@ -93,6 +94,7 @@ function CampaignForm({
 }) {
   const [title, setTitle] = useState(initial?.title ?? "");
   const [sendDate, setSendDate] = useState(initial?.sendDate ?? "");
+  const [sendTime, setSendTime] = useState(initial?.sendTime ?? "08:00");
   const [message, setMessage] = useState(initial?.message ?? "");
   const [imageBase64, setImageBase64] = useState<string | null>(initial?.imageBase64 ?? null);
   const [groupId, setGroupId] = useState(initial?.groupId ?? "");
@@ -134,9 +136,9 @@ function CampaignForm({
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-           <div className="space-y-2">
+          <div className="space-y-2">
             <Label>Tipo da Campanha</Label>
-             <Select value={type} onValueChange={setType}>
+            <Select value={type} onValueChange={setType}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="feriado">Feriado</SelectItem>
@@ -152,6 +154,14 @@ function CampaignForm({
         </div>
 
         <div className="space-y-2">
+          <Label className="flex items-center gap-1.5">
+            <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+            Horário do Disparo
+          </Label>
+          <Input type="time" value={sendTime} onChange={(e) => setSendTime(e.target.value)} />
+        </div>
+
+        <div className="space-y-2">
           <Label>Mensagem</Label>
           <Textarea rows={4} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Mensagem da campanha..." />
         </div>
@@ -164,7 +174,7 @@ function CampaignForm({
         <div className="flex justify-end gap-3 pt-2">
           <Button variant="outline" onClick={onCancel} disabled={isPending}>Cancelar</Button>
           <Button
-            onClick={() => onSave({ title, type, sendDate, message, imageBase64, groupId })}
+            onClick={() => onSave({ title, type, sendDate, sendTime, message, imageBase64, groupId })}
             disabled={!title || !sendDate || !groupId || isPending}
           >
             {isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
@@ -273,7 +283,7 @@ export function SeasonalCampaigns() {
                     </CardTitle>
                     <CardDescription className="flex items-center gap-1 mt-1">
                       <Clock className="h-3.5 w-3.5" />
-                      {formatDate(c.sendDate)}
+                      {formatDate(c.sendDate)} às {c.sendTime || "08:00"}
                     </CardDescription>
                     <CardDescription className="flex items-center gap-1 mt-0.5">
                       <Users className="h-3.5 w-3.5" />

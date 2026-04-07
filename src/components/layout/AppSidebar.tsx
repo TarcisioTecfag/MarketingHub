@@ -1,6 +1,6 @@
-import { MessageSquare, Smartphone, Cake, CalendarHeart, CalendarDays, LayoutDashboard, ChevronRight, Settings, Users, LogOut } from "lucide-react";
+import { MessageSquare, Smartphone, Cake, CalendarHeart, LayoutDashboard, ChevronRight, Settings, Users, LogOut } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import {
@@ -8,7 +8,6 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -21,7 +20,6 @@ const whatsappItems = [
   { title: "Conexão", url: "/whatsapp/conexao", icon: Smartphone },
   { title: "Aniversariantes", url: "/whatsapp/aniversariantes", icon: Cake },
   { title: "Disparos Sazonais", url: "/whatsapp/sazonais", icon: CalendarHeart },
-  { title: "Calendário", url: "/whatsapp/calendario", icon: CalendarDays },
 ];
 
 const settingsItems = [
@@ -33,7 +31,9 @@ export function AppSidebar() {
   const { logout, user } = useAuth();
   const collapsed = state === "collapsed";
   const location = useLocation();
+  const navigate = useNavigate();
   const isActive = (path: string) => location.pathname === path;
+  const isWhatsAppSection = location.pathname.startsWith("/whatsapp");
 
   return (
     <Sidebar collapsible="icon">
@@ -48,6 +48,7 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
+        {/* Início → Calendário */}
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -63,12 +64,17 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
+        {/* WhatsApp — clicável diretamente para o painel */}
         <SidebarGroup>
           <SidebarMenu>
             <Collapsible defaultOpen className="group/collapsible">
               <SidebarMenuItem>
                 <CollapsibleTrigger asChild>
-                  <SidebarMenuButton tooltip="WhatsApp" className="font-medium">
+                  <SidebarMenuButton
+                    tooltip="WhatsApp"
+                    className={`font-medium ${isWhatsAppSection ? "bg-sidebar-accent text-sidebar-accent-foreground" : ""}`}
+                    onClick={() => navigate("/whatsapp")}
+                  >
                     <MessageSquare className="h-4 w-4 shrink-0 border-transparent" />
                     <span>WhatsApp</span>
                     <ChevronRight className="ml-auto h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 group-data-[collapsible=icon]:hidden" />
@@ -93,6 +99,7 @@ export function AppSidebar() {
           </SidebarMenu>
         </SidebarGroup>
 
+        {/* Configurações */}
         <SidebarGroup>
           <SidebarMenu>
             <Collapsible defaultOpen className="group/collapsible">
@@ -127,8 +134,8 @@ export function AppSidebar() {
       <SidebarFooter className="p-4">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton 
-              onClick={logout} 
+            <SidebarMenuButton
+              onClick={logout}
               tooltip="Sair"
               className="text-destructive hover:bg-destructive/10 hover:text-destructive"
             >
