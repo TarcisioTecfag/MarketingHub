@@ -4,6 +4,7 @@ export interface Birthday {
   birthDate: string;
   message: string;
   imageUrl: string | null;
+  groupId: string;
   status: "pendente" | "enviado" | "erro";
 }
 
@@ -37,6 +38,7 @@ export const mockBirthdays: Birthday[] = [
     birthDate: "1990-03-15",
     message: "🎉 Parabéns, Maria! A família Tecfag deseja a você um dia incrível. Que venham muitas realizações!",
     imageUrl: null,
+    groupId: "g1",
     status: "enviado",
   },
   {
@@ -45,6 +47,7 @@ export const mockBirthdays: Birthday[] = [
     birthDate: "1985-07-22",
     message: "🎂 Feliz Aniversário, Carlos! A equipe Tecfag celebra com você esse dia especial!",
     imageUrl: null,
+    groupId: "g1",
     status: "pendente",
   },
   {
@@ -53,6 +56,7 @@ export const mockBirthdays: Birthday[] = [
     birthDate: "1992-11-08",
     message: "🥳 Ana Paula, parabéns! A Tecfag deseja muita saúde e sucesso para você!",
     imageUrl: null,
+    groupId: "g2",
     status: "pendente",
   },
   {
@@ -61,6 +65,7 @@ export const mockBirthdays: Birthday[] = [
     birthDate: "1988-01-30",
     message: "🎈 João Pedro, feliz aniversário! A Tecfag está feliz em tê-lo conosco. Aproveite o seu dia!",
     imageUrl: null,
+    groupId: "g1",
     status: "erro",
   },
 ];
