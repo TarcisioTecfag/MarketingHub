@@ -70,6 +70,12 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        calendar: {
+          birthday: "hsl(var(--calendar-birthday))",
+          event: "hsl(var(--calendar-event))",
+          holiday: "hsl(var(--calendar-holiday))",
+          today: "hsl(var(--calendar-today))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

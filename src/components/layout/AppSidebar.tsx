@@ -1,4 +1,4 @@
-import { MessageSquare, Smartphone, Cake, CalendarHeart, LayoutDashboard, ChevronRight, Settings, Users, LogOut } from "lucide-react";
+import { MessageSquare, Smartphone, Cake, CalendarHeart, CalendarDays, LayoutDashboard, ChevronRight, Settings, Users, LogOut } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,6 +21,7 @@ const whatsappItems = [
   { title: "Conexão", url: "/whatsapp/conexao", icon: Smartphone },
   { title: "Aniversariantes", url: "/whatsapp/aniversariantes", icon: Cake },
   { title: "Disparos Sazonais", url: "/whatsapp/sazonais", icon: CalendarHeart },
+  { title: "Calendário", url: "/whatsapp/calendario", icon: CalendarDays },
 ];
 
 const settingsItems = [

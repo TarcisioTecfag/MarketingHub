@@ -8,6 +8,7 @@ import DashboardHome from "@/pages/DashboardHome";
 import ConnectionPage from "@/pages/whatsapp/ConnectionPage";
 import BirthdaysPage from "@/pages/whatsapp/BirthdaysPage";
 import SeasonalPage from "@/pages/whatsapp/SeasonalPage";
+import CalendarPage from "@/pages/whatsapp/CalendarPage";
 import UsersPage from "@/pages/settings/UsersPage";
 import LoginPage from "@/pages/auth/LoginPage";
 import NotFound from "@/pages/NotFound";
@@ -36,6 +37,7 @@ const DashboardRoutes = () => {
         <Route path="/whatsapp/conexao" element={<PageTransition><ConnectionPage /></PageTransition>} />
         <Route path="/whatsapp/aniversariantes" element={<PageTransition><BirthdaysPage /></PageTransition>} />
         <Route path="/whatsapp/sazonais" element={<PageTransition><SeasonalPage /></PageTransition>} />
+        <Route path="/whatsapp/calendario" element={<PageTransition><CalendarPage /></PageTransition>} />
         <Route path="/configuracoes/usuarios" element={<PageTransition><UsersPage /></PageTransition>} />
         <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
       </Routes>

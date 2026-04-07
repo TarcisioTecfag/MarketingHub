@@ -51,6 +51,12 @@
     --success-foreground: 0 0% 100%;
     --info: 210 80% 55%;
     --info-foreground: 0 0% 100%;
+
+    /* Calendar — harmonized with Tecfag red (#DE0017 ≈ 355 100% 44%) */
+    --calendar-today: 355 100% 44%;    /* primary red — "today" dot */
+    --calendar-birthday: 330 75% 55%; /* rose-pink — aniversariantes */
+    --calendar-event: 225 70% 52%;    /* indigo-blue — eventos / campanhas */
+    --calendar-holiday: 34 90% 50%;   /* amber — feriados */
   }
 }
 
