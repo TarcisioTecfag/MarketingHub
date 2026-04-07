@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import { startWhatsApp, connectionStatus, qrCodeBase64, getGroups, disconnectWhatsApp } from "./whatsapp";
+import { startWhatsApp, connectionStatus, qrCodeBase64, getGroups, disconnectWhatsApp, connectionLogs, sendTestMessage } from "./whatsapp";
 import { prisma } from "./db";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -41,6 +41,23 @@ app.post("/api/whatsapp/connect", async (req, res) => {
 app.post("/api/whatsapp/disconnect", async (req, res) => {
   await disconnectWhatsApp();
   res.json({ success: true });
+});
+
+app.post("/api/whatsapp/send-test", async (req, res) => {
+  try {
+    const { number, message } = req.body;
+    if (!number || !message) {
+      return res.status(400).json({ error: "Número e mensagem são obrigatórios" });
+    }
+    await sendTestMessage(number, message);
+    res.json({ success: true });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "Falha ao enviar mensagem de teste" });
+  }
+});
+
+app.get("/api/whatsapp/logs", (req, res) => {
+  res.json(connectionLogs);
 });
 
 app.get("/api/groups", async (req, res) => {
