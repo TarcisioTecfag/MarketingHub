@@ -41,7 +41,7 @@ export const startCronJobs = () => {
       const [, bMonth, bDay] = b.birthDate.split("-");
       if (bMonth !== currentMonth || bDay !== currentDay) continue;
 
-      const { hour, minute } = parseSendTime(b.sendTime);
+      const { hour, minute } = parseSendTime((b as any).sendTime ?? "08:00");
       if (hour !== currentHour || minute !== currentMinute) continue;
 
       try {
@@ -67,7 +67,7 @@ export const startCronJobs = () => {
     });
 
     for (const s of seasonals) {
-      const { hour, minute } = parseSendTime(s.sendTime);
+      const { hour, minute } = parseSendTime((s as any).sendTime ?? "08:00");
       if (hour !== currentHour || minute !== currentMinute) continue;
 
       try {

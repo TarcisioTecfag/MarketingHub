@@ -51,9 +51,9 @@ export default function LoginPage() {
           <div className="flex justify-center mb-6">
             <img src="/logo.png" alt="Tecfag Logo" className="h-40 w-auto object-contain" />
           </div>
-          <CardTitle className="text-2xl font-bold tracking-tight">Bem-vindo de volta</CardTitle>
+          <CardTitle className="text-2xl font-bold tracking-tight">Welcome Designer!</CardTitle>
           <CardDescription>
-            Faça login no Marketing Hub para continuar
+            Use seu usuário para acessar o sistema
           </CardDescription>
         </CardHeader>
 
