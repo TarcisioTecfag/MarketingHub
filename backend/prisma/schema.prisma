@@ -1,0 +1,38 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model AuthState {
+  id    String @id
+  value String @db.Text
+}
+
+model Birthday {
+  id          String   @id @default(uuid())
+  name        String
+  birthDate   String   // Format: YYYY-MM-DD
+  groupId     String
+  message     String   @db.Text
+  imageBase64 String?  @db.Text
+  status      String   @default("pendente")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model SeasonalCampaign {
+  id          String   @id @default(uuid())
+  title       String
+  type        String
+  sendDate    String   // Format: YYYY-MM-DD
+  groupId     String
+  message     String   @db.Text
+  imageBase64 String?  @db.Text
+  status      String   @default("pendente")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

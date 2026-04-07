@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Smartphone, QrCode, Wifi, WifiOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { fetchApi } from "@/lib/api";
 
 type Status = "disconnected" | "connecting" | "connected";
 
@@ -14,17 +15,35 @@ const statusConfig: Record<Status, { label: string; variant: "destructive" | "se
 
 export function ConnectionStatus() {
   const [status, setStatus] = useState<Status>("disconnected");
-  const [showQr, setShowQr] = useState(false);
+  const [qrCode, setQrCode] = useState<string | null>(null);
 
-  const handleGenerateQr = () => {
-    setStatus("connecting");
-    setShowQr(true);
-    setTimeout(() => setStatus("connected"), 3000);
-  };
+  useEffect(() => {
+    const checkStatus = async () => {
+      try {
+        const { status } = await fetchApi("/whatsapp/status");
+        setStatus(status);
+        if (status === "connecting") {
+           const { qr } = await fetchApi("/whatsapp/qr");
+           setQrCode(qr);
+        } else {
+           setQrCode(null);
+        }
+      } catch (err) {
+        setStatus("disconnected");
+      }
+    };
+    
+    checkStatus();
+    const interval = setInterval(checkStatus, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
-  const handleDisconnect = () => {
-    setStatus("disconnected");
-    setShowQr(false);
+  const handleDisconnect = async () => {
+    try {
+      await fetchApi("/whatsapp/disconnect", { method: "POST" });
+      setStatus("disconnected");
+      setQrCode(null);
+    } catch {}
   };
 
   const cfg = statusConfig[status];
@@ -53,14 +72,11 @@ export function ConnectionStatus() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="rounded-lg border bg-muted/50 p-4 text-sm text-muted-foreground">
-              {status === "disconnected" && "Nenhum dispositivo conectado. Clique em \"Gerar QR Code\" para iniciar a conexão."}
+              {status === "disconnected" && "Nenhum dispositivo conectado. Aguarde o QR Code iniciar na tela ao lado..."}
               {status === "connecting" && "Escaneie o QR Code com o WhatsApp no seu celular para concluir a conexão."}
               {status === "connected" && "✅ Dispositivo conectado com sucesso. Os disparos automáticos estão habilitados."}
             </div>
             <div className="flex gap-3">
-              <Button onClick={handleGenerateQr} disabled={status !== "disconnected"}>
-                Gerar QR Code
-              </Button>
               <Button variant="outline" onClick={handleDisconnect} disabled={status === "disconnected"}>
                 Desconectar
               </Button>
@@ -77,26 +93,20 @@ export function ConnectionStatus() {
             <CardDescription>Escaneie com o aplicativo WhatsApp.</CardDescription>
           </CardHeader>
           <CardContent className="flex items-center justify-center">
-            {!showQr ? (
-              <div className="flex flex-col items-center gap-3 py-8 text-muted-foreground">
-                <QrCode className="h-16 w-16 opacity-20" />
-                <p className="text-sm">Aguardando geração do QR Code</p>
+            {status === "connected" ? (
+              <div className="flex flex-col items-center gap-3 py-8 text-success">
+                <Wifi className="h-16 w-16 text-primary" />
+                <p className="text-sm font-medium">Conectado com sucesso!</p>
               </div>
-            ) : status === "connecting" ? (
+            ) : qrCode ? (
               <div className="flex flex-col items-center gap-3 py-4">
-                <div className="h-48 w-48 rounded-xl border-2 border-dashed border-primary/30 bg-muted flex items-center justify-center">
-                  <div className="grid grid-cols-5 gap-1">
-                    {Array.from({ length: 25 }).map((_, i) => (
-                      <div key={i} className={`h-7 w-7 rounded-sm ${Math.random() > 0.4 ? "bg-foreground" : "bg-transparent"}`} />
-                    ))}
-                  </div>
-                </div>
-                <p className="text-sm text-muted-foreground animate-pulse-dot">Aguardando leitura...</p>
+                <img src={qrCode} alt="WhatsApp QR Code" className="h-48 w-48 rounded-xl border border-primary/20" />
+                <p className="text-sm text-muted-foreground animate-pulse">Aguardando leitura...</p>
               </div>
             ) : (
-              <div className="flex flex-col items-center gap-3 py-8 text-success">
-                <Wifi className="h-16 w-16" />
-                <p className="text-sm font-medium">Conectado com sucesso!</p>
+              <div className="flex flex-col items-center gap-3 py-8 text-muted-foreground">
+                <Loader2 className="h-16 w-16 opacity-30 animate-spin" />
+                <p className="text-sm">Aguardando geração do QR Code pelo servidor...</p>
               </div>
             )}
           </CardContent>
@@ -105,3 +115,4 @@ export function ConnectionStatus() {
     </div>
   );
 }
+

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Pencil, Trash2, Cake, Search, Users, ImageIcon } from "lucide-react";
+import { Plus, Pencil, Trash2, Cake, Search, Users, ImageIcon, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,8 +8,24 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { mockBirthdays, mockGroups, type Birthday } from "@/data/mock-data";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { fetchApi } from "@/lib/api";
+
+type Birthday = {
+  id: string;
+  name: string;
+  birthDate: string;
+  groupId: string;
+  message: string;
+  imageBase64: string | null;
+  status: "pendente" | "enviado" | "erro";
+};
+
+type Group = {
+  id: string;
+  name: string;
+};
 
 const statusBadge: Record<Birthday["status"], { label: string; variant: "default" | "secondary" | "destructive" }> = {
   enviado: { label: "Enviado", variant: "default" },
@@ -31,8 +47,7 @@ function WhatsAppPreview({ message, imageUrl, groupName }: { message: string; im
         <div
           className="flex-1 p-3 flex flex-col justify-end min-h-0 overflow-y-auto"
           style={{
-            backgroundImage:
-              "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")",
+             backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")",
           }}
         >
           {message || imageUrl ? (
@@ -63,23 +78,39 @@ function WhatsAppPreview({ message, imageUrl, groupName }: { message: string; im
   );
 }
 
-function BirthdayForm({ initial, onSave, onCancel }: { initial?: Birthday; onSave: (b: Omit<Birthday, "id" | "status">) => void; onCancel: () => void }) {
+function BirthdayForm({
+  initial,
+  onSave,
+  onCancel,
+  groups,
+  isPending
+}: {
+  initial?: Birthday;
+  onSave: (b: Omit<Birthday, "id" | "status">) => void;
+  onCancel: () => void;
+  groups: Group[];
+  isPending: boolean;
+}) {
   const [name, setName] = useState(initial?.name ?? "");
   const [birthDate, setBirthDate] = useState(initial?.birthDate ?? "");
   const [message, setMessage] = useState(initial?.message ?? "");
-  const [imagePreview, setImagePreview] = useState<string | null>(initial?.imageUrl ?? null);
+  const [imageBase64, setImageBase64] = useState<string | null>(initial?.imageBase64 ?? null);
   const [groupId, setGroupId] = useState(initial?.groupId ?? "");
 
-  const selectedGroup = mockGroups.find((g) => g.id === groupId);
+  const selectedGroup = groups.find((g) => g.id === groupId);
 
   const handleImage = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) setImagePreview(URL.createObjectURL(file));
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (evt) => setImageBase64(evt.target?.result as string);
+      reader.readAsDataURL(file);
+    }
   };
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <WhatsAppPreview message={message} imageUrl={imagePreview} groupName={selectedGroup?.name ?? ""} />
+      <WhatsAppPreview message={message} imageUrl={imageBase64} groupName={selectedGroup?.name ?? ""} />
 
       <div className="space-y-4">
         <div className="space-y-2">
@@ -87,13 +118,13 @@ function BirthdayForm({ initial, onSave, onCancel }: { initial?: Birthday; onSav
           <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Maria Oliveira" />
         </div>
         <div className="space-y-2">
-          <Label>Grupo de Destino</Label>
+          <Label>Grupo de Destino (Whatsapp)</Label>
           <Select value={groupId} onValueChange={setGroupId}>
             <SelectTrigger>
-              <SelectValue placeholder="Selecione o grupo" />
+              <SelectValue placeholder={groups.length > 0 ? "Selecione o grupo" : "Nenhum grupo encontrado..."} />
             </SelectTrigger>
             <SelectContent>
-              {mockGroups.map((g) => (
+              {groups.map((g) => (
                 <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
               ))}
             </SelectContent>
@@ -104,16 +135,22 @@ function BirthdayForm({ initial, onSave, onCancel }: { initial?: Birthday; onSav
           <Input type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} />
         </div>
         <div className="space-y-2">
-          <Label>Mensagem Personalizada</Label>
-          <Textarea rows={4} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Mensagem de parabéns..." />
+          <Label>Mensagem Personalizada (use {'{nome}'} para a variável)</Label>
+          <Textarea rows={4} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Parabéns {nome}! Feliz aniversário..." />
         </div>
         <div className="space-y-2">
           <Label>Foto do Funcionário</Label>
           <Input type="file" accept="image/*" onChange={handleImage} />
         </div>
         <div className="flex justify-end gap-3 pt-2">
-          <Button variant="outline" onClick={onCancel}>Cancelar</Button>
-          <Button onClick={() => onSave({ name, birthDate, message, imageUrl: imagePreview, groupId })} disabled={!name || !birthDate || !groupId}>Salvar</Button>
+          <Button variant="outline" onClick={onCancel} disabled={isPending}>Cancelar</Button>
+          <Button
+            onClick={() => onSave({ name, birthDate, message, imageBase64, groupId })}
+            disabled={!name || !birthDate || !groupId || isPending}
+          >
+            {isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+            Salvar
+          </Button>
         </div>
       </div>
     </div>
@@ -121,30 +158,56 @@ function BirthdayForm({ initial, onSave, onCancel }: { initial?: Birthday; onSav
 }
 
 export function BirthdayManager() {
-  const [items, setItems] = useState<Birthday[]>(mockBirthdays);
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Birthday | undefined>();
 
+  const { data: items = [], isLoading } = useQuery<Birthday[]>({
+    queryKey: ["birthdays"],
+    queryFn: () => fetchApi("/birthdays"),
+  });
+
+  const { data: groups = [] } = useQuery<Group[]>({
+    queryKey: ["groups"],
+    queryFn: () => fetchApi("/groups")
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: (data: Omit<Birthday, "id" | "status">) => {
+      if (editing) {
+        return fetchApi(`/birthdays/${editing.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
+      }
+      return fetchApi("/birthdays", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["birthdays"] });
+      setDialogOpen(false);
+      setEditing(undefined);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => fetchApi(`/birthdays/${id}`, { method: "DELETE" }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["birthdays"] }),
+  });
+
   const filtered = items.filter((b) => b.name.toLowerCase().includes(search.toLowerCase()));
 
-  const handleSave = (data: Omit<Birthday, "id" | "status">) => {
-    if (editing) {
-      setItems((prev) => prev.map((b) => (b.id === editing.id ? { ...b, ...data } : b)));
-    } else {
-      setItems((prev) => [...prev, { ...data, id: String(Date.now()), status: "pendente" }]);
-    }
-    setDialogOpen(false);
-    setEditing(undefined);
-  };
-
-  const handleDelete = (id: string) => setItems((prev) => prev.filter((b) => b.id !== id));
-
-  const getGroupName = (groupId: string) => mockGroups.find((g) => g.id === groupId)?.name ?? "—";
+  const getGroupName = (groupId: string) => groups.find((g) => g.id === groupId)?.name ?? groupId;
 
   const formatDate = (d: string) => {
-    const [y, m, day] = d.split("-");
-    return `${day}/${m}/${y}`;
+    const parts = d.split("-");
+    if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    return d;
   };
 
   return (
@@ -162,7 +225,13 @@ export function BirthdayManager() {
             <DialogHeader>
               <DialogTitle>{editing ? "Editar Aniversariante" : "Cadastrar Aniversariante"}</DialogTitle>
             </DialogHeader>
-            <BirthdayForm initial={editing} onSave={handleSave} onCancel={() => { setDialogOpen(false); setEditing(undefined); }} />
+            <BirthdayForm
+              initial={editing}
+              groups={groups}
+              isPending={saveMutation.isPending}
+              onSave={(data) => saveMutation.mutate(data)}
+              onCancel={() => { setDialogOpen(false); setEditing(undefined); }}
+            />
           </DialogContent>
         </Dialog>
       </div>
@@ -192,26 +261,29 @@ export function BirthdayManager() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map((b) => {
-                const badge = statusBadge[b.status];
+              {isLoading && (
+                 <TableRow><TableCell colSpan={5} className="text-center py-8"><Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" /></TableCell></TableRow>
+              )}
+              {!isLoading && filtered.map((b) => {
+                const badge = statusBadge[b.status] || statusBadge.pendente;
                 return (
                   <TableRow key={b.id}>
                     <TableCell className="font-medium">{b.name}</TableCell>
                     <TableCell>{formatDate(b.birthDate)}</TableCell>
-                    <TableCell className="text-muted-foreground text-sm">{getGroupName(b.groupId)}</TableCell>
+                    <TableCell className="text-muted-foreground text-sm truncate max-w-[200px]">{getGroupName(b.groupId)}</TableCell>
                     <TableCell><Badge variant={badge.variant}>{badge.label}</Badge></TableCell>
                     <TableCell className="text-right">
-                      <Button size="icon" variant="ghost" onClick={() => { setEditing(b); setDialogOpen(true); }}>
+                      <Button size="icon" variant="ghost" onClick={() => { setEditing(b); setDialogOpen(true); }} disabled={deleteMutation.isPending}>
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button size="icon" variant="ghost" onClick={() => handleDelete(b.id)}>
+                      <Button size="icon" variant="ghost" onClick={() => deleteMutation.mutate(b.id)} disabled={deleteMutation.isPending}>
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
                     </TableCell>
                   </TableRow>
                 );
               })}
-              {filtered.length === 0 && (
+              {!isLoading && filtered.length === 0 && (
                 <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">Nenhum aniversariante encontrado.</TableCell></TableRow>
               )}
             </TableBody>
