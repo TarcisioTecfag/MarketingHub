@@ -1,6 +1,7 @@
-import { MessageSquare, Smartphone, Cake, CalendarHeart, LayoutDashboard, ChevronRight, Settings, Users } from "lucide-react";
+import { MessageSquare, Smartphone, Cake, CalendarHeart, LayoutDashboard, ChevronRight, Settings, Users, LogOut } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import {
   Sidebar,
@@ -12,6 +13,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarHeader,
+  SidebarFooter,
   useSidebar,
 } from "@/components/ui/sidebar";
 
@@ -27,6 +29,7 @@ const settingsItems = [
 
 export function AppSidebar() {
   const { state } = useSidebar();
+  const { logout, user } = useAuth();
   const collapsed = state === "collapsed";
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path;
@@ -119,6 +122,21 @@ export function AppSidebar() {
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
+
+      <SidebarFooter className="p-4">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton 
+              onClick={logout} 
+              tooltip="Sair"
+              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+            >
+              <LogOut className="h-4 w-4" />
+              <span>Sair</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   );
 }

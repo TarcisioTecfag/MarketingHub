@@ -20,6 +20,15 @@ app.get("/api/whatsapp/qr", (req, res) => {
   res.json({ qr: qrCodeBase64 });
 });
 
+app.post("/api/whatsapp/connect", async (req, res) => {
+  try {
+    await startWhatsApp();
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: "Falha ao iniciar WhatsApp" });
+  }
+});
+
 app.post("/api/whatsapp/disconnect", async (req, res) => {
   await disconnectWhatsApp();
   res.json({ success: true });
