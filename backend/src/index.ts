@@ -17,7 +17,7 @@ const corsOptions = {
   credentials: false,
 };
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions)); // Handle ALL preflight requests explicitly
+app.options(/.*/, cors(corsOptions)); // Handle ALL preflight requests explicitly
 app.use(express.json({ limit: "50mb" }));
 
 // ---- WhatsApp Core Routes ----
