@@ -16,11 +16,13 @@ const statusConfig: Record<Status, { label: string; variant: "destructive" | "se
 export function ConnectionStatus() {
   const [status, setStatus] = useState<Status>("disconnected");
   const [qrCode, setQrCode] = useState<string | null>(null);
+  const [debugError, setDebugError] = useState<string | null>(null);
 
   useEffect(() => {
     const checkStatus = async () => {
       try {
         const { status } = await fetchApi("/whatsapp/status");
+        setDebugError(null);
         setStatus(status);
         if (status === "connecting") {
            const { qr } = await fetchApi("/whatsapp/qr");
@@ -28,8 +30,9 @@ export function ConnectionStatus() {
         } else {
            setQrCode(null);
         }
-      } catch (err) {
+      } catch (err: any) {
         setStatus("disconnected");
+        setDebugError(err.message || String(err));
       }
     };
     
@@ -76,6 +79,13 @@ export function ConnectionStatus() {
               {status === "connecting" && "Escaneie o QR Code com o WhatsApp no seu celular para concluir a conexão."}
               {status === "connected" && "✅ Dispositivo conectado com sucesso. Os disparos automáticos estão habilitados."}
             </div>
+            {debugError && (
+              <div className="rounded-lg border border-red-500/50 bg-red-500/10 p-4 text-xs font-mono text-red-500 break-words">
+                Erro de Comunicação com a API:<br/>
+                {debugError}<br/>
+                URL Configurada: {import.meta.env.VITE_API_URL || "Padrão"}
+              </div>
+            )}
             <div className="flex gap-3">
               <Button variant="outline" onClick={handleDisconnect} disabled={status === "disconnected"}>
                 Desconectar
