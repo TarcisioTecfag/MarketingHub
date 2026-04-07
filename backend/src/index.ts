@@ -9,16 +9,24 @@ const JWT_SECRET = process.env.JWT_SECRET || "tecfag_marketing_hub_super_secret"
 
 const app = express();
 
-// Explicit CORS — must be before all routes
-const corsOptions = {
-  origin: "*",
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: false,
-};
-app.use(cors(corsOptions));
-app.options(/.*/, cors(corsOptions)); // Handle ALL preflight requests explicitly
+// Manual CORS — raw headers, no package dependency
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept");
+  res.setHeader("Access-Control-Max-Age", "86400");
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+  next();
+});
+
 app.use(express.json({ limit: "50mb" }));
+
+// Health check — confirms server is alive
+app.get("/health", (req, res) => {
+  res.json({ ok: true, ts: new Date().toISOString() });
+});
 
 // ---- WhatsApp Core Routes ----
 app.get("/api/whatsapp/status", (req, res) => {
