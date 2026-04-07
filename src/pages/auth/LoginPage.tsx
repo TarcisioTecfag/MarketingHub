@@ -49,7 +49,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md shadow-xl border-primary/10 relative z-10">
         <CardHeader className="space-y-2 text-center pb-6 pt-8">
           <div className="flex justify-center mb-6">
-            <img src="/logo.png" alt="Tecfag Logo" className="h-16 w-auto object-contain" />
+            <img src="/logo.png" alt="Tecfag Logo" className="h-40 w-auto object-contain" />
           </div>
           <CardTitle className="text-2xl font-bold tracking-tight">Bem-vindo de volta</CardTitle>
           <CardDescription>
