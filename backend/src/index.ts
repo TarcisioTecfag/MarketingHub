@@ -4,7 +4,16 @@ import { startWhatsApp, connectionStatus, qrCodeBase64, getGroups, disconnectWha
 import { prisma } from "./db";
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: [
+    'https://marketing-hub-nine-lemon.vercel.app',
+    'http://localhost:3000',
+    'http://localhost:3001'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json({ limit: "50mb" }));
 
 // ---- WhatsApp Core Routes ----
@@ -122,6 +131,11 @@ app.delete("/api/users/:id", async (req, res) => {
 });
 
 import { startCronJobs } from "./cron";
+
+app.use((err: any, req: any, res: any, next: any) => {
+  console.error('Error:', err);
+  res.status(500).json({ error: 'Internal server error' });
+});
 
 const PORT = process.env.PORT || 3000;
 
