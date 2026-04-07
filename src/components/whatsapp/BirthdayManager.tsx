@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Pencil, Trash2, Cake, Search, Users, ImageIcon, Loader2, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -224,7 +225,12 @@ export function BirthdayManager() {
   };
 
   return (
-    <div className="space-y-6">
+    <motion.div
+      className="space-y-6"
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ type: "spring", stiffness: 350, damping: 28 }}
+    >
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Aniversariantes</h1>
@@ -278,10 +284,16 @@ export function BirthdayManager() {
               {isLoading && (
                  <TableRow><TableCell colSpan={6} className="text-center py-8"><Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" /></TableCell></TableRow>
               )}
-              {!isLoading && filtered.map((b) => {
+              {!isLoading && filtered.map((b, i) => {
                 const badge = statusBadge[b.status] || statusBadge.pendente;
                 return (
-                  <TableRow key={b.id}>
+                  <motion.tr
+                    key={b.id}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.04, type: "spring", stiffness: 400, damping: 30 }}
+                    className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
+                  >
                     <TableCell className="font-medium">{b.name}</TableCell>
                     <TableCell>{formatDate(b.birthDate)}</TableCell>
                     <TableCell>
@@ -299,7 +311,7 @@ export function BirthdayManager() {
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
                     </TableCell>
-                  </TableRow>
+                  </motion.tr>
                 );
               })}
               {!isLoading && filtered.length === 0 && (
@@ -309,6 +321,6 @@ export function BirthdayManager() {
           </Table>
         </CardContent>
       </Card>
-    </div>
+    </motion.div>
   );
 }

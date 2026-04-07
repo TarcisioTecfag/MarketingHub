@@ -1,6 +1,6 @@
 import { MessageSquare, Smartphone, Cake, CalendarHeart, LayoutDashboard, ChevronRight, Settings, Users, LogOut } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import {
@@ -28,10 +28,8 @@ const settingsItems = [
 
 export function AppSidebar() {
   const { state } = useSidebar();
-  const { logout, user } = useAuth();
-  const collapsed = state === "collapsed";
+  const { logout } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate();
   const isActive = (path: string) => location.pathname === path;
   const isWhatsAppSection = location.pathname.startsWith("/whatsapp");
 
@@ -64,7 +62,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* WhatsApp — clicável diretamente para o painel */}
+        {/* WhatsApp — apenas expande/colapsa as abas */}
         <SidebarGroup>
           <SidebarMenu>
             <Collapsible defaultOpen className="group/collapsible">
@@ -73,9 +71,8 @@ export function AppSidebar() {
                   <SidebarMenuButton
                     tooltip="WhatsApp"
                     className={`font-medium ${isWhatsAppSection ? "bg-sidebar-accent text-sidebar-accent-foreground" : ""}`}
-                    onClick={() => navigate("/whatsapp")}
                   >
-                    <MessageSquare className="h-4 w-4 shrink-0 border-transparent" />
+                    <MessageSquare className="h-4 w-4 shrink-0" />
                     <span>WhatsApp</span>
                     <ChevronRight className="ml-auto h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 group-data-[collapsible=icon]:hidden" />
                   </SidebarMenuButton>
@@ -106,7 +103,7 @@ export function AppSidebar() {
               <SidebarMenuItem>
                 <CollapsibleTrigger asChild>
                   <SidebarMenuButton tooltip="Configurações" className="font-medium">
-                    <Settings className="h-4 w-4 shrink-0 border-transparent" />
+                    <Settings className="h-4 w-4 shrink-0" />
                     <span>Configurações</span>
                     <ChevronRight className="ml-auto h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 group-data-[collapsible=icon]:hidden" />
                   </SidebarMenuButton>

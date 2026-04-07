@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { Plus, Pencil, Trash2, CalendarHeart, Clock, ImageIcon, Users, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -239,7 +240,12 @@ export function SeasonalCampaigns() {
   const sorted = [...items].sort((a, b) => a.sendDate.localeCompare(b.sendDate));
 
   return (
-    <div className="space-y-6">
+    <motion.div
+      className="space-y-6"
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ type: "spring", stiffness: 350, damping: 28 }}
+    >
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Disparos Sazonais</h1>
@@ -270,10 +276,16 @@ export function SeasonalCampaigns() {
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
         )}
-        {!isLoading && sorted.map((c) => {
+        {!isLoading && sorted.map((c, i) => {
           const badge = statusBadge[c.status] || statusBadge.pendente;
           return (
-            <Card key={c.id}>
+            <motion.div
+              key={c.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.06, type: "spring", stiffness: 380, damping: 28 }}
+            >
+            <Card>
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div>
@@ -305,6 +317,7 @@ export function SeasonalCampaigns() {
                 </div>
               </CardContent>
             </Card>
+            </motion.div>
           );
         })}
       </div>
@@ -317,6 +330,6 @@ export function SeasonalCampaigns() {
           </CardContent>
         </Card>
       )}
-    </div>
+    </motion.div>
   );
 }

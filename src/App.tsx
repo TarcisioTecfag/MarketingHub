@@ -5,7 +5,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import CalendarPage from "@/pages/whatsapp/CalendarPage";
-import DashboardHome from "@/pages/DashboardHome";
 import ConnectionPage from "@/pages/whatsapp/ConnectionPage";
 import BirthdaysPage from "@/pages/whatsapp/BirthdaysPage";
 import SeasonalPage from "@/pages/whatsapp/SeasonalPage";
@@ -35,8 +34,6 @@ const DashboardRoutes = () => {
       <Routes>
         {/* Início → Calendário */}
         <Route path="/" element={<PageTransition><CalendarPage /></PageTransition>} />
-        {/* WhatsApp (clique direto na sidebar) → painel antigo */}
-        <Route path="/whatsapp" element={<PageTransition><DashboardHome /></PageTransition>} />
         <Route path="/whatsapp/conexao" element={<PageTransition><ConnectionPage /></PageTransition>} />
         <Route path="/whatsapp/aniversariantes" element={<PageTransition><BirthdaysPage /></PageTransition>} />
         <Route path="/whatsapp/sazonais" element={<PageTransition><SeasonalPage /></PageTransition>} />

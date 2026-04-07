@@ -118,16 +118,18 @@ export function birthdaysToEvents(
 
 /**
  * Convert seasonal campaigns from the SeasonalCampaigns API into CalendarEvents.
+ * API returns: { id, title, sendDate (YYYY-MM-DD), sendTime, description, ... }
  */
 export function campaignsToEvents(
-  campaigns: Array<{ id: string; name: string; scheduledDate?: string; date?: string; description?: string }>
+  campaigns: Array<{ id: string; title: string; sendDate?: string; description?: string }>
 ): CalendarEvent[] {
   return campaigns
-    .filter((c) => c.scheduledDate || c.date)
+    .filter((c) => !!c.sendDate)
     .map((c) => ({
       id: `campaign-${c.id}`,
-      title: c.name,
-      date: (c.scheduledDate || c.date)!,
+      title: c.title,
+      // sendDate is "YYYY-MM-DD" — convert to full ISO for consistency
+      date: new Date(c.sendDate! + "T12:00:00").toISOString(),
       type: "event" as const,
       description: c.description,
     }));

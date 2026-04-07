@@ -22,13 +22,13 @@ const CalendarPage = () => {
   const { data: birthdaysRaw = [] } = useQuery<Array<{ id: string; name: string; birthDate: string }>>({
     queryKey: ["birthdays"],
     queryFn: () => fetchApi("/birthdays"),
-    staleTime: 1000 * 60 * 5, // 5 min
+    staleTime: 1000 * 60 * 5,
   });
 
-  // ── Fetch seasonal campaigns ───────────────────────────────────────────────
-  const { data: campaignsRaw = [] } = useQuery<Array<{ id: string; name: string; scheduledDate?: string; date?: string; description?: string }>>({
-    queryKey: ["seasonal-campaigns"],
-    queryFn: () => fetchApi("/seasonal-campaigns"),
+  // ── Fetch seasonal campaigns — endpoint is /seasonals ─────────────────────
+  const { data: campaignsRaw = [] } = useQuery<Array<{ id: string; title: string; sendDate?: string; description?: string }>>({
+    queryKey: ["seasonals"],  // same key as SeasonalCampaigns — shares cache
+    queryFn: () => fetchApi("/seasonals"),
     staleTime: 1000 * 60 * 5,
   });
 
