@@ -46,7 +46,8 @@ export const startWhatsApp = async () => {
 
     if (connection === "close") {
       const error = (lastDisconnect?.error as Boom)?.output?.statusCode;
-      const shouldReconnect = error !== DisconnectReason.loggedOut;
+      // 401: Logged Out, 405: Not Allowed (corrupted session data, need new QR)
+      const shouldReconnect = error !== DisconnectReason.loggedOut && error !== 405;
       
       connectionStatus = "disconnected";
       qrCodeBase64 = null;
@@ -56,7 +57,7 @@ export const startWhatsApp = async () => {
         addLog(`Conexão fechada (Status: ${error}). Tentando reconectar...`, "error");
         setTimeout(startWhatsApp, 3000);
       } else {
-        addLog("Sessão desconectada. Aguardando nova leitura de QR Code.", "error");
+        addLog(`Sessão inválida ou desconectada (Status: ${error}). Solicitando novo QR Code...`, "error");
         await prisma.authState.deleteMany();
         startWhatsApp();
       }
