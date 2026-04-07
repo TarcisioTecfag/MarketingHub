@@ -8,7 +8,16 @@ import jwt from "jsonwebtoken";
 const JWT_SECRET = process.env.JWT_SECRET || "tecfag_marketing_hub_super_secret";
 
 const app = express();
-app.use(cors());
+
+// Explicit CORS — must be before all routes
+const corsOptions = {
+  origin: "*",
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: false,
+};
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions)); // Handle ALL preflight requests explicitly
 app.use(express.json({ limit: "50mb" }));
 
 // ---- WhatsApp Core Routes ----
