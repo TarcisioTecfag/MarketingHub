@@ -65,7 +65,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup defaultOpen>
+        <SidebarGroup>
           <SidebarGroupLabel className="flex items-center gap-2">
             <MessageSquare className="h-3.5 w-3.5" />
             {!collapsed && <span>WhatsApp</span>}
