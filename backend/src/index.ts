@@ -80,12 +80,54 @@ app.delete("/api/seasonals/:id", async (req, res) => {
   res.json({ success: true });
 });
 
+// ---- Users Routes ----
+app.get("/api/users", async (req, res) => {
+  try {
+    const users = await prisma.user.findMany({ orderBy: { createdAt: 'desc' } });
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ error: "Erro ao buscar usuários" });
+  }
+});
+
+app.post("/api/users", async (req, res) => {
+  try {
+    const data = req.body;
+    const created = await prisma.user.create({ data });
+    res.json(created);
+  } catch (error) {
+    res.status(500).json({ error: "Erro ao criar usuário" });
+  }
+});
+
+app.put("/api/users/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const data = req.body;
+    const updated = await prisma.user.update({ where: { id }, data });
+    res.json(updated);
+  } catch (error) {
+    res.status(500).json({ error: "Erro ao atualizar usuário" });
+  }
+});
+
+app.delete("/api/users/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    await prisma.user.delete({ where: { id } });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: "Erro ao excluir usuário" });
+  }
+});
+
 import { startCronJobs } from "./cron";
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
+app.listen(Number(PORT), "0.0.0.0", () => {
   console.log(`Servidor rodando na porta ${PORT}`);
   startCronJobs();
   startWhatsApp().catch(console.error);
 });
+
