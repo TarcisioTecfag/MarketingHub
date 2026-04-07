@@ -7,6 +7,11 @@ export interface Birthday {
   status: "pendente" | "enviado" | "erro";
 }
 
+export interface WhatsAppGroup {
+  id: string;
+  name: string;
+}
+
 export interface SeasonalCampaign {
   id: string;
   title: string;
@@ -14,8 +19,16 @@ export interface SeasonalCampaign {
   time: string;
   message: string;
   imageUrl: string | null;
+  groupId: string;
   status: "agendado" | "enviado" | "rascunho";
 }
+
+export const mockGroups: WhatsAppGroup[] = [
+  { id: "g1", name: "Tecfag - Geral" },
+  { id: "g2", name: "Tecfag - Marketing" },
+  { id: "g3", name: "Tecfag - RH" },
+  { id: "g4", name: "Tecfag - Diretoria" },
+];
 
 export const mockBirthdays: Birthday[] = [
   {
@@ -60,6 +73,7 @@ export const mockCampaigns: SeasonalCampaign[] = [
     time: "08:00",
     message: "🐣 A Tecfag deseja a todos uma Feliz Páscoa! Que esse dia seja repleto de amor e paz.",
     imageUrl: null,
+    groupId: "g1",
     status: "agendado",
   },
   {
@@ -69,6 +83,7 @@ export const mockCampaigns: SeasonalCampaign[] = [
     time: "07:00",
     message: "💐 Feliz Dia das Mães! A Tecfag parabeniza todas as mães da nossa equipe.",
     imageUrl: null,
+    groupId: "g2",
     status: "rascunho",
   },
   {
@@ -78,6 +93,7 @@ export const mockCampaigns: SeasonalCampaign[] = [
     time: "00:01",
     message: "🎄 Feliz Natal! A família Tecfag deseja boas festas e um próspero Ano Novo!",
     imageUrl: null,
+    groupId: "g1",
     status: "agendado",
   },
   {
@@ -87,6 +103,7 @@ export const mockCampaigns: SeasonalCampaign[] = [
     time: "09:00",
     message: "📢 Informamos que a Tecfag estará em recesso do dia 23/12 até 02/01. Boas festas!",
     imageUrl: null,
+    groupId: "g3",
     status: "rascunho",
   },
 ];
