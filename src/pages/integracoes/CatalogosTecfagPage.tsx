@@ -1,6 +1,7 @@
 import { useRef, useState, useCallback } from "react";
 import { toast } from "@/components/ui/use-toast";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { fetchApi } from "@/lib/api";
 import {
   Upload,
   FileText,
@@ -13,7 +14,6 @@ import {
   Loader2,
 } from "lucide-react";
 
-const API = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 const HUB_URL = "https://catalogos-tecfag.vercel.app";
 
 interface CatalogConfig {
@@ -47,29 +47,14 @@ function downloadBase64(base64: string, name: string) {
   link.click();
 }
 
-async function fetchCatalogs(): Promise<CatalogConfig> {
-  const res = await fetch(`${API}/api/catalogs`);
-  if (!res.ok) throw new Error("Falha ao buscar catálogos");
-  return res.json();
-}
+// Usa o fetchApi centralizado — VITE_API_URL já inclui /api
+const fetchCatalogs = (): Promise<CatalogConfig> => fetchApi("/catalogs");
 
-async function putField(path: string, body: object) {
-  const res = await fetch(`${API}${path}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) throw new Error("Falha ao salvar");
-  return res.json();
-}
+const putField = (path: string, body: object) =>
+  fetchApi(path, { method: "PUT", body: JSON.stringify(body) });
 
-async function deleteField(catalog: string, field: string) {
-  const res = await fetch(`${API}/api/catalogs/${catalog}/${field}`, {
-    method: "DELETE",
-  });
-  if (!res.ok) throw new Error("Falha ao remover");
-  return res.json();
-}
+const deleteField = (catalog: string, field: string) =>
+  fetchApi(`/catalogs/${catalog}/${field}`, { method: "DELETE" });
 
 // ── CatalogCard component ─────────────────────────────────────────────────────
 
@@ -109,7 +94,7 @@ function CatalogCard({
       setUploadingImg(true);
       try {
         const base64 = await readFileAsBase64(file);
-        await putField(`/api/catalogs/${catalogKey}/image`, {
+        await putField(`/catalogs/${catalogKey}/image`, {
           base64,
           name: file.name,
         });
@@ -133,7 +118,7 @@ function CatalogCard({
       setUploadingPdf(true);
       try {
         const base64 = await readFileAsBase64(file);
-        await putField(`/api/catalogs/${catalogKey}/pdf`, {
+        await putField(`/catalogs/${catalogKey}/pdf`, {
           base64,
           name: file.name,
         });
