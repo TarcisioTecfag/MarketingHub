@@ -239,20 +239,10 @@ app.get("/api/visitors/stats", async (req, res) => {
   }
 });
 
-// DELETE — apaga visitas antigas (mais de 90 dias)
-app.delete("/api/visitors/cleanup", async (req, res) => {
-  try {
-    const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
-    const { count } = await prisma.visitor.deleteMany({
-      where: { createdAt: { lt: ninetyDaysAgo } },
-    });
-    res.json({ ok: true, deleted: count });
-  } catch (err) {
-    res.status(500).json({ error: "Erro ao limpar registros" });
-  }
-});
+// NOTA: Registros de visitantes são mantidos permanentemente — nunca apagados.
 
 // ---- Catalog Config Routes (Integrações → Catálogos Tecfag) ----
+
 
 
 // GET — retorna o config atual (cria registro vazio se não existir)

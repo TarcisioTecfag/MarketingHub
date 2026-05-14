@@ -530,11 +530,14 @@ function AnalyticsPanel() {
 
         {/* Total geral */}
         <div className="rounded-xl border border-border bg-card p-4 flex flex-col gap-1">
-          <p className="text-xs text-muted-foreground">Total de visitas</p>
+          <p className="text-xs text-muted-foreground">Histórico total</p>
           {isLoading ? (
             <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
           ) : (
-            <p className="text-2xl font-bold text-foreground">{data?.total?.toLocaleString("pt-BR") ?? 0}</p>
+            <>
+              <p className="text-2xl font-bold text-foreground">{data?.total?.toLocaleString("pt-BR") ?? 0}</p>
+              <p className="text-[11px] text-muted-foreground">desde o início</p>
+            </>
           )}
         </div>
 
