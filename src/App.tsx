@@ -9,6 +9,7 @@ import ConnectionPage from "@/pages/whatsapp/ConnectionPage";
 import BirthdaysPage from "@/pages/whatsapp/BirthdaysPage";
 import SeasonalPage from "@/pages/whatsapp/SeasonalPage";
 import UsersPage from "@/pages/settings/UsersPage";
+import CatalogosTecfagPage from "@/pages/integracoes/CatalogosTecfagPage";
 import LoginPage from "@/pages/auth/LoginPage";
 import NotFound from "@/pages/NotFound";
 import { AnimatePresence } from "framer-motion";
@@ -38,6 +39,7 @@ const DashboardRoutes = () => {
         <Route path="/whatsapp/aniversariantes" element={<PageTransition><BirthdaysPage /></PageTransition>} />
         <Route path="/whatsapp/sazonais" element={<PageTransition><SeasonalPage /></PageTransition>} />
         <Route path="/configuracoes/usuarios" element={<PageTransition><UsersPage /></PageTransition>} />
+        <Route path="/integracoes/catalogos" element={<PageTransition><CatalogosTecfagPage /></PageTransition>} />
         <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
       </Routes>
     </DashboardLayout>

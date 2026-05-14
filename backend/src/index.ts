@@ -140,6 +140,106 @@ app.delete("/api/seasonals/:id", async (req, res) => {
   res.json({ success: true });
 });
 
+// ---- Catalog Config Routes (Integrações → Catálogos Tecfag) ----
+
+// GET — retorna o config atual (cria registro vazio se não existir)
+app.get("/api/catalogs", async (req, res) => {
+  try {
+    const config = await prisma.catalogConfig.upsert({
+      where: { id: "tecfag" },
+      create: { id: "tecfag" },
+      update: {},
+    });
+    res.json(config);
+  } catch (err) {
+    res.status(500).json({ error: "Erro ao buscar configurações de catálogo" });
+  }
+});
+
+// PUT — imagem do catálogo Semi (base64 no body)
+app.put("/api/catalogs/semi/image", async (req, res) => {
+  try {
+    const { base64, name } = req.body;
+    const updated = await prisma.catalogConfig.upsert({
+      where: { id: "tecfag" },
+      create: { id: "tecfag", semiImageBase64: base64, semiImageName: name },
+      update: { semiImageBase64: base64, semiImageName: name },
+    });
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: "Erro ao salvar imagem do catálogo Semi" });
+  }
+});
+
+// PUT — PDF do catálogo Semi (base64 no body)
+app.put("/api/catalogs/semi/pdf", async (req, res) => {
+  try {
+    const { base64, name } = req.body;
+    const updated = await prisma.catalogConfig.upsert({
+      where: { id: "tecfag" },
+      create: { id: "tecfag", semiPdfBase64: base64, semiPdfName: name },
+      update: { semiPdfBase64: base64, semiPdfName: name },
+    });
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: "Erro ao salvar PDF do catálogo Semi" });
+  }
+});
+
+// PUT — imagem do catálogo Industrial (base64 no body)
+app.put("/api/catalogs/industrial/image", async (req, res) => {
+  try {
+    const { base64, name } = req.body;
+    const updated = await prisma.catalogConfig.upsert({
+      where: { id: "tecfag" },
+      create: { id: "tecfag", industrialImageBase64: base64, industrialImageName: name },
+      update: { industrialImageBase64: base64, industrialImageName: name },
+    });
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: "Erro ao salvar imagem do catálogo Industrial" });
+  }
+});
+
+// PUT — PDF do catálogo Industrial (base64 no body)
+app.put("/api/catalogs/industrial/pdf", async (req, res) => {
+  try {
+    const { base64, name } = req.body;
+    const updated = await prisma.catalogConfig.upsert({
+      where: { id: "tecfag" },
+      create: { id: "tecfag", industrialPdfBase64: base64, industrialPdfName: name },
+      update: { industrialPdfBase64: base64, industrialPdfName: name },
+    });
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: "Erro ao salvar PDF do catálogo Industrial" });
+  }
+});
+
+// DELETE — limpa imagem ou PDF de um catálogo
+app.delete("/api/catalogs/:catalog/:field", async (req, res) => {
+  try {
+    const { catalog, field } = req.params;
+    const fieldMap: Record<string, object> = {
+      "semi-image":         { semiImageBase64: null, semiImageName: null },
+      "semi-pdf":           { semiPdfBase64: null, semiPdfName: null },
+      "industrial-image":   { industrialImageBase64: null, industrialImageName: null },
+      "industrial-pdf":     { industrialPdfBase64: null, industrialPdfName: null },
+    };
+    const key = `${catalog}-${field}`;
+    const data = fieldMap[key];
+    if (!data) return res.status(400).json({ error: "Campo inválido" });
+    const updated = await prisma.catalogConfig.upsert({
+      where: { id: "tecfag" },
+      create: { id: "tecfag" },
+      update: data,
+    });
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: "Erro ao remover arquivo" });
+  }
+});
+
 // ---- Auth & Users Routes ----
 app.post("/api/login", async (req, res) => {
   try {

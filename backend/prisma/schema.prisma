@@ -48,3 +48,16 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model CatalogConfig {
+  id                     String   @id @default("tecfag")
+  semiImageBase64        String?  @db.Text
+  semiImageName          String?
+  semiPdfBase64          String?  @db.Text
+  semiPdfName            String?
+  industrialImageBase64  String?  @db.Text
+  industrialImageName    String?
+  industrialPdfBase64    String?  @db.Text
+  industrialPdfName      String?
+  updatedAt              DateTime @updatedAt
+}

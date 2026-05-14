@@ -1,4 +1,4 @@
-import { MessageSquare, Smartphone, Cake, CalendarHeart, LayoutDashboard, ChevronRight, Settings, Users, LogOut } from "lucide-react";
+import { MessageSquare, Smartphone, Cake, CalendarHeart, LayoutDashboard, ChevronRight, Settings, Users, LogOut, Plug, BookOpen } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -26,12 +26,17 @@ const settingsItems = [
   { title: "Usuários", url: "/configuracoes/usuarios", icon: Users },
 ];
 
+const integracoesItems = [
+  { title: "Catálogos Tecfag", url: "/integracoes/catalogos", icon: BookOpen },
+];
+
 export function AppSidebar() {
   const { state } = useSidebar();
   const { logout } = useAuth();
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path;
   const isWhatsAppSection = location.pathname.startsWith("/whatsapp");
+  const isIntegracaoSection = location.pathname.startsWith("/integracoes");
 
   return (
     <Sidebar collapsible="icon">
@@ -80,6 +85,40 @@ export function AppSidebar() {
                 <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down group-data-[collapsible=icon]:hidden">
                   <SidebarMenu className="mt-1 pl-6">
                     {whatsappItems.map((item) => (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton asChild isActive={isActive(item.url)}>
+                          <NavLink to={item.url} activeClassName="bg-sidebar-accent text-sidebar-accent-foreground">
+                            <item.icon className="h-4 w-4" />
+                            <span>{item.title}</span>
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </CollapsibleContent>
+              </SidebarMenuItem>
+            </Collapsible>
+          </SidebarMenu>
+        </SidebarGroup>
+
+        {/* Integrações */}
+        <SidebarGroup>
+          <SidebarMenu>
+            <Collapsible defaultOpen className="group/collapsible">
+              <SidebarMenuItem>
+                <CollapsibleTrigger asChild>
+                  <SidebarMenuButton
+                    tooltip="Integrações"
+                    className={`font-medium ${isIntegracaoSection ? "bg-sidebar-accent text-sidebar-accent-foreground" : ""}`}
+                  >
+                    <Plug className="h-4 w-4 shrink-0" />
+                    <span>Integrações</span>
+                    <ChevronRight className="ml-auto h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 group-data-[collapsible=icon]:hidden" />
+                  </SidebarMenuButton>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down group-data-[collapsible=icon]:hidden">
+                  <SidebarMenu className="mt-1 pl-6">
+                    {integracoesItems.map((item) => (
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton asChild isActive={isActive(item.url)}>
                           <NavLink to={item.url} activeClassName="bg-sidebar-accent text-sidebar-accent-foreground">
