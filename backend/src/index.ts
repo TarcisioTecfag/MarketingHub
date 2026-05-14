@@ -140,7 +140,120 @@ app.delete("/api/seasonals/:id", async (req, res) => {
   res.json({ success: true });
 });
 
+// ---- Visitor Tracking Routes (Analytics do HUB FEIRA) ----
+
+// POST — registra início de visita
+app.post("/api/visitors/start", async (req, res) => {
+  try {
+    const {
+      sessionId, ip, country, countryCode, city, region, timezone,
+      latitude, longitude, browser, os, device, language, referrer,
+      screenW, screenH,
+    } = req.body;
+
+    if (!sessionId) return res.status(400).json({ error: "sessionId obrigatório" });
+
+    const visitor = await prisma.visitor.upsert({
+      where: { sessionId },
+      create: {
+        sessionId, ip, country, countryCode, city, region, timezone,
+        latitude, longitude, browser, os, device, language, referrer,
+        screenW, screenH,
+      },
+      update: {},
+    });
+    res.json({ ok: true, id: visitor.id });
+  } catch (err) {
+    res.status(500).json({ error: "Erro ao registrar visita" });
+  }
+});
+
+// PATCH — atualiza duração e catálogo visualizado ao sair da página
+app.patch("/api/visitors/:sessionId/end", async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const { duration, catalogViewed } = req.body;
+    const visitor = await prisma.visitor.update({
+      where: { sessionId },
+      data: { duration: Number(duration) || 0, catalogViewed: catalogViewed ?? null },
+    });
+    res.json({ ok: true, id: visitor.id });
+  } catch {
+    res.status(200).json({ ok: true }); // silently ignore if session not found
+  }
+});
+
+// GET — estatísticas agregadas do painel
+app.get("/api/visitors/stats", async (req, res) => {
+  try {
+    const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000);
+    const oneDayAgo  = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+    const [total, onlineNow, last24h, avgDurationRaw, topCountries, recent] = await Promise.all([
+      // Total geral
+      prisma.visitor.count(),
+      // Online agora (criado nos últimos 5 min sem duração finalizada)
+      prisma.visitor.count({ where: { createdAt: { gte: fiveMinAgo }, duration: null } }),
+      // Últimas 24h
+      prisma.visitor.count({ where: { createdAt: { gte: oneDayAgo } } }),
+      // Duração média (apenas quem saiu)
+      prisma.visitor.aggregate({
+        _avg: { duration: true },
+        where: { duration: { not: null, gt: 0 } },
+      }),
+      // Top 5 países
+      prisma.visitor.groupBy({
+        by: ["country", "countryCode"],
+        _count: { id: true },
+        orderBy: { _count: { id: "desc" } },
+        take: 5,
+        where: { country: { not: null } },
+      }),
+      // 50 visitantes mais recentes
+      prisma.visitor.findMany({
+        orderBy: { createdAt: "desc" },
+        take: 50,
+        select: {
+          id: true, sessionId: true, country: true, countryCode: true,
+          city: true, region: true, browser: true, os: true, device: true,
+          language: true, referrer: true, duration: true, catalogViewed: true,
+          createdAt: true,
+        },
+      }),
+    ]);
+
+    res.json({
+      total,
+      onlineNow,
+      last24h,
+      avgDuration: Math.round(avgDurationRaw._avg.duration ?? 0),
+      topCountries: topCountries.map((c) => ({
+        country: c.country,
+        countryCode: c.countryCode,
+        count: c._count.id,
+      })),
+      recent,
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Erro ao buscar estatísticas" });
+  }
+});
+
+// DELETE — apaga visitas antigas (mais de 90 dias)
+app.delete("/api/visitors/cleanup", async (req, res) => {
+  try {
+    const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+    const { count } = await prisma.visitor.deleteMany({
+      where: { createdAt: { lt: ninetyDaysAgo } },
+    });
+    res.json({ ok: true, deleted: count });
+  } catch (err) {
+    res.status(500).json({ error: "Erro ao limpar registros" });
+  }
+});
+
 // ---- Catalog Config Routes (Integrações → Catálogos Tecfag) ----
+
 
 // GET — retorna o config atual (cria registro vazio se não existir)
 app.get("/api/catalogs", async (req, res) => {

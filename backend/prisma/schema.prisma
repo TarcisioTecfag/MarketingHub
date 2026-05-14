@@ -61,3 +61,28 @@ model CatalogConfig {
   industrialPdfName      String?
   updatedAt              DateTime @updatedAt
 }
+
+model Visitor {
+  id          String   @id @default(uuid())
+  sessionId   String   @unique
+  ip          String?
+  country     String?
+  countryCode String?
+  city        String?
+  region      String?
+  timezone    String?
+  latitude    Float?
+  longitude   Float?
+  browser     String?
+  os          String?
+  device      String?   // "mobile" | "tablet" | "desktop"
+  language    String?
+  referrer    String?
+  screenW     Int?
+  screenH     Int?
+  duration    Int?      // segundos na página (null = ainda online)
+  catalogViewed String? // "semi" | "industrial" | null
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+

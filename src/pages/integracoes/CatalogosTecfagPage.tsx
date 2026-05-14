@@ -12,6 +12,8 @@ import {
   ImageIcon,
   CheckCircle2,
   Loader2,
+  Activity,
+  RefreshCw,
 } from "lucide-react";
 
 const HUB_URL = "https://catalogos-tecfag.vercel.app";
@@ -430,6 +432,232 @@ export default function CatalogosTecfagPage() {
           })}
         </p>
       )}
+
+      {/* ── Analytics Panel ──────────────────────────────────────────────── */}
+      <AnalyticsPanel />
     </div>
   );
 }
+
+// ── Analytics Panel ───────────────────────────────────────────────────────────
+
+interface VisitorStats {
+  total: number;
+  onlineNow: number;
+  last24h: number;
+  avgDuration: number;
+  topCountries: { country: string | null; countryCode: string | null; count: number }[];
+  recent: {
+    id: string;
+    country: string | null;
+    countryCode: string | null;
+    city: string | null;
+    region: string | null;
+    browser: string | null;
+    os: string | null;
+    device: string | null;
+    language: string | null;
+    referrer: string | null;
+    duration: number | null;
+    catalogViewed: string | null;
+    createdAt: string;
+  }[];
+}
+
+function formatDuration(seconds: number | null): string {
+  if (!seconds || seconds <= 0) return "—";
+  if (seconds < 60) return `${seconds}s`;
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return s > 0 ? `${m}m ${s}s` : `${m}m`;
+}
+
+function deviceIcon(device: string | null) {
+  if (device === "mobile") return "📱";
+  if (device === "tablet") return "📟";
+  return "🖥️";
+}
+
+function flagEmoji(countryCode: string | null): string {
+  if (!countryCode || countryCode.length !== 2) return "🌐";
+  return countryCode
+    .toUpperCase()
+    .split("")
+    .map((c) => String.fromCodePoint(0x1f1e6 + c.charCodeAt(0) - 65))
+    .join("");
+}
+
+function AnalyticsPanel() {
+  const { data, isLoading, refetch } = useQuery<VisitorStats>({
+    queryKey: ["visitor-stats"],
+    queryFn: () => fetchApi("/visitors/stats"),
+    refetchInterval: 30_000, // atualiza a cada 30 segundos
+  });
+
+  return (
+    <div className="flex flex-col gap-5 mt-4">
+      {/* Divisor */}
+      <div className="flex items-center gap-3">
+        <div className="h-px flex-1 bg-border" />
+        <span className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+          <Activity className="h-3.5 w-3.5" />
+          Monitoramento do Site
+        </span>
+        <div className="h-px flex-1 bg-border" />
+      </div>
+
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Online agora */}
+        <div className="rounded-xl border border-border bg-card p-4 flex flex-col gap-1">
+          <p className="text-xs text-muted-foreground">Online agora</p>
+          <div className="flex items-end gap-2">
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+            ) : (
+              <>
+                <p className="text-2xl font-bold text-foreground">{data?.onlineNow ?? 0}</p>
+                {(data?.onlineNow ?? 0) > 0 && (
+                  <span className="mb-0.5 flex items-center gap-1 text-xs text-emerald-500 font-medium">
+                    <span className="inline-block h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                    ao vivo
+                  </span>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Total geral */}
+        <div className="rounded-xl border border-border bg-card p-4 flex flex-col gap-1">
+          <p className="text-xs text-muted-foreground">Total de visitas</p>
+          {isLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+          ) : (
+            <p className="text-2xl font-bold text-foreground">{data?.total?.toLocaleString("pt-BR") ?? 0}</p>
+          )}
+        </div>
+
+        {/* Últimas 24h */}
+        <div className="rounded-xl border border-border bg-card p-4 flex flex-col gap-1">
+          <p className="text-xs text-muted-foreground">Últimas 24h</p>
+          {isLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+          ) : (
+            <p className="text-2xl font-bold text-foreground">{data?.last24h ?? 0}</p>
+          )}
+        </div>
+
+        {/* Tempo médio */}
+        <div className="rounded-xl border border-border bg-card p-4 flex flex-col gap-1">
+          <p className="text-xs text-muted-foreground">Tempo médio</p>
+          {isLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+          ) : (
+            <p className="text-2xl font-bold text-foreground">{formatDuration(data?.avgDuration ?? 0)}</p>
+          )}
+        </div>
+      </div>
+
+      {/* Top países + tabela de visitantes */}
+      {!isLoading && data && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {/* Top países */}
+          <div className="rounded-xl border border-border bg-card p-4 flex flex-col gap-3">
+            <p className="text-sm font-medium text-foreground">Top Países</p>
+            {data.topCountries.length === 0 ? (
+              <p className="text-xs text-muted-foreground">Sem dados ainda</p>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {data.topCountries.map((c, i) => (
+                  <div key={i} className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-lg leading-none">{flagEmoji(c.countryCode)}</span>
+                      <span className="text-sm text-foreground truncate">{c.country ?? "Desconhecido"}</span>
+                    </div>
+                    <span className="text-xs font-semibold text-muted-foreground shrink-0">{c.count}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Tabela de visitantes recentes */}
+          <div className="lg:col-span-2 rounded-xl border border-border bg-card overflow-hidden">
+            <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+              <p className="text-sm font-medium text-foreground">Visitantes Recentes</p>
+              <button
+                onClick={() => refetch()}
+                className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
+              >
+                <RefreshCw className="h-3 w-3" />
+                Atualizar
+              </button>
+            </div>
+
+            {data.recent.length === 0 ? (
+              <div className="p-8 text-center text-xs text-muted-foreground">
+                Nenhum visitante registrado ainda
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-border bg-muted/20">
+                      <th className="text-left px-3 py-2 text-muted-foreground font-medium">País / Cidade</th>
+                      <th className="text-left px-3 py-2 text-muted-foreground font-medium">Dispositivo</th>
+                      <th className="text-left px-3 py-2 text-muted-foreground font-medium">Catálogo</th>
+                      <th className="text-left px-3 py-2 text-muted-foreground font-medium">Tempo</th>
+                      <th className="text-left px-3 py-2 text-muted-foreground font-medium">Data</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.recent.map((v) => (
+                      <tr key={v.id} className="border-b border-border/50 hover:bg-muted/20 transition-colors">
+                        <td className="px-3 py-2">
+                          <div className="flex items-center gap-1.5">
+                            <span>{flagEmoji(v.countryCode)}</span>
+                            <div className="min-w-0">
+                              <p className="font-medium text-foreground truncate">{v.country ?? "—"}</p>
+                              {v.city && <p className="text-muted-foreground truncate">{v.city}{v.region ? `, ${v.region}` : ""}</p>}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-3 py-2">
+                          <div className="flex items-center gap-1">
+                            <span>{deviceIcon(v.device)}</span>
+                            <div>
+                              <p className="text-foreground">{v.browser ?? "—"}</p>
+                              <p className="text-muted-foreground">{v.os ?? ""}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-3 py-2">
+                          {v.catalogViewed ? (
+                            <span className="inline-flex items-center rounded-full bg-primary/10 text-primary px-2 py-0.5 text-[11px] font-medium">
+                              {v.catalogViewed === "semi" ? "Semi-Novo" : "Industrial"}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </td>
+                        <td className="px-3 py-2 text-foreground">{formatDuration(v.duration)}</td>
+                        <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">
+                          {new Date(v.createdAt).toLocaleString("pt-BR", {
+                            day: "2-digit", month: "2-digit",
+                            hour: "2-digit", minute: "2-digit",
+                          })}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
